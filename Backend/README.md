@@ -20,3 +20,7 @@
     D. Middleware
     E. Utilities
     F. more [if needed]
+
+# Scripts added
+
+-> start || lint || dev || build || format
