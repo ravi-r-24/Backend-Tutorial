@@ -4,6 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon index.js",
+    "dev": "nodemon index.js --exec babel-node",
+    "build": "babel src -d dist",
+    "lint": "eslint src/**/*.js",
+    "format": "prettier --write src/**/*.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "ravi raushan",
