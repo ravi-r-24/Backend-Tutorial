@@ -24,3 +24,5 @@
 # Scripts added
 
 -> start || lint || dev || build || format
+
+## Read CORS in Details
