@@ -27,6 +27,8 @@
 
 ## Read CORS in Details...
 
-# DATA MODELING
+# DATA MODELING (Models)
 
-# Todo Model
+    -> Todo models
+    -> ECommerce models
+    -> Hospital models
