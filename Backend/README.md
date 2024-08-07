@@ -25,4 +25,8 @@
 
 -> start || lint || dev || build || format
 
-## Read CORS in Details
+## Read CORS in Details...
+
+# DATA MODELING
+
+# Todo Model
