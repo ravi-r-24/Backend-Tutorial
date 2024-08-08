@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "nodemon src/index.js",
-    "dev": "nodemon index.js --exec babel-node",
+    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
     "build": "babel src -d dist",
     "lint": "eslint src/**/*.js",
     "format": "prettier --write src/**/*.js",
