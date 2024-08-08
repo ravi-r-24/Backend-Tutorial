@@ -50,3 +50,5 @@
 # JWT token generation
 
 # Read "jwt-token" in details
+
+# File upload
