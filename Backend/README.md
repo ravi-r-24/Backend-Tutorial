@@ -40,3 +40,13 @@
 # npm i cookie-parser || cors
 
 # Read "Higher Order Function" in details
+
+# **_ npm i mongoose-aggregate-paginate-v2 _**
+
+# Read "mongoose-aggregate pipeline" in details
+
+# password encryption and decryption
+
+# JWT token generation
+
+# Read "jwt-token" in details
