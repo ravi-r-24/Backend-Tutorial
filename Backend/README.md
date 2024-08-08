@@ -32,3 +32,11 @@
     -> Todo models
     -> ECommerce models
     -> Hospital models
+
+# DATABASE Connection
+
+# Custom API responses and error handling
+
+# npm i cookie-parser || cors
+
+# Read "Higher Order Function" in details
