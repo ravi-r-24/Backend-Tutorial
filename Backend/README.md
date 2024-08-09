@@ -57,3 +57,4 @@
 
     -> configure cloudinary
     -> file system in NodeJS
+    -> configure multer
