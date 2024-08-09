@@ -52,3 +52,8 @@
 # Read "jwt-token" in details
 
 # File upload
+
+    -> npm i multer cloudinary
+
+    -> configure cloudinary
+    -> file system in NodeJS
