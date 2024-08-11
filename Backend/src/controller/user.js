@@ -18,11 +18,9 @@ const registerUser = asyncHandler(async (req, res) => {
   // get the user details through req.body
   const { first_name, last_name, email, password, channel_name, phone } =
     req.body;
-  console.log(
-    `first_name: ${first_name}, last_name: ${last_name}, email: ${email}, password: ${password}, channel_name: ${channel_name}`
-  );
 
   // check if-any fields are empty
+  // TODO: Error in this if clause
   if (
     [first_name, last_name, email, password, channel_name, phone].some(
       (field) => field?.trim() === ""
@@ -32,7 +30,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // check if user already exist
-  const existingUser = User.findOne({
+  const existingUser = await User.findOne({
     $or: [{ channel_name }, { email }],
   });
 
@@ -41,7 +39,16 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const avatarLocalPath = req.files?.avatar[0]?.path;
-  const coverPhotoLocalPath = req.files?.cover_photo[0]?.path;
+  // const coverPhotoLocalPath = req.files?.cover_photo[0]?.path;
+
+  let coverPhotoLocalPath;
+  if (
+    req.files &&
+    Array.isArray(req.files.cover_photo) &&
+    req.files.cover_photo.length > 0
+  ) {
+    coverPhotoLocalPath = req.files.cover_photo[0].path;
+  }
 
   // check if avatar provided
   if (!avatarLocalPath) {
@@ -63,11 +70,11 @@ const registerUser = asyncHandler(async (req, res) => {
     first_name,
     last_name,
     email,
-    password: await User.encryptPassword(password),
+    password,
     channel_name,
     phone,
     avatar: avatarResponse.secure_url,
-    cover_photo: coverPhotoResponse?.coverPhotoResponse.secure_url || "",
+    cover_photo: coverPhotoResponse?.secure_url || "",
   });
 
   const newUser = await User.findById(user._id).select(

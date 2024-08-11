@@ -8,7 +8,7 @@ const userSchema = new Schema(
     first_name: { type: String, required: true },
     last_name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    phone: { type: Number, required: true, min: 10, max: 10 },
+    phone: { type: Number, required: true },
     channel_name: { type: String, required: true, unique: true, index: true },
     password: {
       type: String,
@@ -16,7 +16,7 @@ const userSchema = new Schema(
       min: 8,
     }, // TODO: password encryption and decryption discussion
     avatar: { type: String, required: true }, // cloudnery hosted image link
-    cover_photo: { type: String, required: true }, // cloudnery hosted image link
+    cover_photo: { type: String }, // cloudnery hosted image link
     watch_history: [
       {
         type: Schema.Types.ObjectId,
@@ -30,7 +30,7 @@ const userSchema = new Schema(
 
 userSchema.pre("save", async function (next) {
   // check if password get modified or not
-  if (!this.modified("password")) return next();
+  if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
