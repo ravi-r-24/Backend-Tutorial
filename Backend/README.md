@@ -58,3 +58,10 @@
     -> configure cloudinary
     -> file system in NodeJS
     -> configure multer
+
+# TODO: Why we have created asyncHandler in utils file
+
+# Logic
+
+    -> Controller
+    -> Router
