@@ -4,6 +4,22 @@ import { User } from "../models/liveTube/user.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import APIResponse from "../utils/apiResponse.js";
 
+// method to generate access and refresh tokens
+const generateAccessAndRefreshToken = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+
+    user.refresh_token = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    return { accessToken, refreshToken };
+  } catch (error) {
+    throw new APIError(500, error.message);
+  }
+};
+
 const registerUser = asyncHandler(async (req, res) => {
   // get the data from the user
   // validate the data - [all mandatory data there, password pattern match]
@@ -90,4 +106,99 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new APIResponse(200, newUser, "User registered successfully"));
 });
 
-export { registerUser };
+const loginUser = asyncHandler(async (req, res) => {
+  // get data
+  // find email in database
+  // password check
+  // access token and refresh token
+  // store refresh token in database
+  // send cookies
+
+  // get data
+  const { email, password } = req.body;
+
+  // error || no email || no password
+  if (!email && !password) {
+    throw new APIError(400, "Email is required");
+  }
+
+  // find email in database
+  const user = await User.findOne({ email: email });
+
+  // throw error if user not found
+  if (!user) {
+    throw new APIError(401, "Invalid email address");
+  }
+
+  // check password
+  const isPasswordValid = await User.isPasswordCorrect(password);
+
+  // throw error if password is incorrect
+  if (!isPasswordValid) {
+    throw new APIError(401, "Invalid password");
+  }
+
+  // access and refresh tokens
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    user._id
+  );
+
+  // send tokens to the cookie of user system
+
+  const loggedInUser = await User.findById(user._id);
+  select("-password -refresh-token");
+
+  // design option for cookies
+  const options = {
+    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // true for production
+  };
+
+  return res
+    .status(200)
+    .cookie("access_token", access_token, options)
+    .cookie("refresh_token", refresh_token, options)
+    .json(
+      new APIResponse(
+        200,
+        {
+          user: loggedInUser,
+          accessToken,
+          refreshToken,
+        },
+        "User is authenticated"
+      )
+    );
+});
+
+const logoutUser = asyncHandler(async (req, res) => {
+  // remove cookies
+  // remove refresh token
+
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        refresh_token: undefined,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  const options = {
+    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // true for production
+  };
+
+  return res
+    .status(200)
+    .clearCookie("access_token", options)
+    .clearCookie("refresh_token", options)
+    .json(new APIResponse(200, null, "User is logged out"));
+});
+
+export { registerUser, loginUser, logoutUser };
