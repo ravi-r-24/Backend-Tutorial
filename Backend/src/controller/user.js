@@ -3,20 +3,21 @@ import APIError from "../utils/apiError.js";
 import { User } from "../models/liveTube/user.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import APIResponse from "../utils/apiResponse.js";
+import jwt from "jsonwebtoken";
 
 // method to generate access and refresh tokens
 const generateAccessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
-    const accessToken = user.generateAccessToken();
-    const refreshToken = user.generateRefreshToken();
+    const access_token = await user.generateAccessToken();
+    const refresh_token = await user.generateRefreshToken();
 
-    user.refresh_token = refreshToken;
-    await user.save({ validateBeforeSave: false });
+    user.refresh_token = refresh_token;
+    await user.save({ validateBeforeSave: false }); // no validation before saving the changes
 
-    return { accessToken, refreshToken };
+    return { access_token, refresh_token };
   } catch (error) {
-    throw new APIError(500, error.message);
+    throw new APIError(500, error?.message || "Unable to generate tokens");
   }
 };
 
@@ -107,52 +108,46 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  // get data
-  // find email in database
-  // password check
-  // access token and refresh token
-  // store refresh token in database
-  // send cookies
+  // get the data from the user
+  // check if the user exists
+  // check if the password is correct
+  // generate access and refresh tokens [refresh token for let the user logged in, access token to validate the user]
+  // send refresh token to the user's system cookie
 
-  // get data
+  // get the user details through req.body
   const { email, password } = req.body;
 
-  // error || no email || no password
-  if (!email && !password) {
-    throw new APIError(400, "Email is required");
-  }
-
-  // find email in database
+  // check if the user exists
   const user = await User.findOne({ email: email });
 
-  // throw error if user not found
   if (!user) {
+    // TODO: Throw error in proper way
     throw new APIError(401, "Invalid email address");
   }
 
-  // check password
-  const isPasswordValid = await User.isPasswordCorrect(password);
+  // check if the password is correct
+  const isPasswordValid = await user.isPasswordCorrect(password);
 
-  // throw error if password is incorrect
   if (!isPasswordValid) {
+    // TODO: Throw error in proper way
     throw new APIError(401, "Invalid password");
   }
 
-  // access and refresh tokens
-  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+  // generate tokens
+  const { access_token, refresh_token } = await generateAccessAndRefreshToken(
     user._id
-  );
+  ); // tokens generated and inserted into database here, so make one more database query to get the token
 
-  // send tokens to the cookie of user system
+  // Make database query
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refresh_token"
+  ); // No need of mentioned fields
 
-  const loggedInUser = await User.findById(user._id);
-  select("-password -refresh-token");
-
-  // design option for cookies
+  // send refresh token to the user's system cookie
   const options = {
-    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+    expires: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day expiry
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // true for production
+    secure: true,
   };
 
   return res
@@ -161,22 +156,19 @@ const loginUser = asyncHandler(async (req, res) => {
     .cookie("refresh_token", refresh_token, options)
     .json(
       new APIResponse(
-        200,
+        200, // status code
         {
           user: loggedInUser,
-          accessToken,
-          refreshToken,
-        },
-        "User is authenticated"
+          access_token,
+          refresh_token, // sending tokens here to the user to make sure if the user want to use the token then they can
+        }, // response data
+        "User logged in successfully" // response message
       )
-    );
+    ); // accessToken and refreshToken are value returned by generateAccessAndRefreshToken
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-  // remove cookies
-  // remove refresh token
-
-  await User.findByIdAndUpdate(
+  User.findByIdAndUpdate(
     req.user._id,
     {
       $set: {
@@ -189,16 +181,75 @@ const logoutUser = asyncHandler(async (req, res) => {
   );
 
   const options = {
-    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+    expires: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day expiry
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // true for production
+    secure: true,
   };
 
   return res
     .status(200)
     .clearCookie("access_token", options)
     .clearCookie("refresh_token", options)
-    .json(new APIResponse(200, null, "User is logged out"));
+    .json(new APIResponse(200, {}, "Logged out successfully"));
 });
 
-export { registerUser, loginUser, logoutUser };
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  // access refresh token from cookie
+  const incomingRefreshToken =
+    req.cookie.refresh_token || req.body.refresh_token;
+
+  if (!incomingRefreshToken) {
+    throw new APIError(401, "Unauthorized request");
+  }
+
+  try {
+    // verify incoming refresh token
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    // find user
+    const user = await User.findById(decodedToken?._id);
+
+    // if user is not valid
+    if (!user) {
+      throw new APIError(401, "Invalid refresh token");
+    }
+
+    // match incoming refresh token and refresh token stored in database
+    if (incomingRefreshToken !== user?.refresh_token) {
+      throw new APIError(401, "Refresh token is expired or invalid");
+    }
+
+    // if incoming refresh token and refresh token stored in database matched then generate new access token and refresh token for the user
+
+    const options = {
+      expires: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day expiry
+      httpOnly: true,
+      secure: true,
+    };
+
+    const { access_token, new_refresh_token } =
+      await generateAccessAndRefreshToken(user._id);
+
+    return res
+      .status(200)
+      .cookie("access_token", access_token, options)
+      .cookie("refresh_token", new_refresh_token, options)
+      .json(
+        new APIResponse(
+          200,
+          {
+            access_token,
+            refresh_token: new_refresh_token,
+          },
+          "Access token refreshed successfully" // response message
+        )
+      );
+  } catch (error) {
+    throw new APIError(401, error?.message || "Invalid refresh token");
+  }
+});
+
+export { registerUser, loginUser, logoutUser, refreshAccessToken };
