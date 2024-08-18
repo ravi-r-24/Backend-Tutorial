@@ -252,4 +252,85 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  // check if the user is logged-in [ It will be handled in the route through auth middleware]
+  // get the current password, new password and confirm new password from the user
+  // get the user
+  // check if the old password is matching with the password stored in the database
+  // check if the new password and confirm new password are same
+  // validate the new password
+  // replace the old password with new password in the user's object [database]
+  // save the operation
+
+  const { current_password, new_password, confirm_new_password } = req.body;
+
+  console.log(`Current password: ${current_password}`);
+  console.log(`New password: ${new_password}`);
+  console.log(`Confirm new password: ${confirm_new_password}`);
+
+  const user = await User.findById(req.user._id);
+
+  const isPasswordMatching = await user.isPasswordCorrect(current_password);
+
+  if (!isPasswordMatching) {
+    throw new APIError(401, "Current password is incorrect");
+  }
+
+  if (new_password !== confirm_new_password) {
+    throw new APIError(
+      400,
+      "New Password and Confirm New Password doesn't match"
+    );
+  }
+
+  user.password = new_password;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new APIResponse(200, {}, "Password updated successfully"));
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  // check if the user is logged-in [ It will be handled in the route through auth middleware]
+  // get the user through request
+  // return the fetched user
+
+  const user = await User.findById(req.user._id).select(
+    "-password -refresh_token"
+  );
+
+  return res.status(200).json(new APIResponse(200, { user }, "Current User"));
+});
+
+const updateUserData = asyncHandler(async (req, res) => {
+  // get the data from the user
+  // check if the user is logged-in [ It will be handled in the route through auth middleware]
+  // get the user through request
+  // update the user's data in the database
+
+  const { first_name, last_name, phone } = req.body;
+
+  if (!(first_name || last_name || phone)) {
+    throw new APIError(400, "Please enter the details which you have to edit");
+  }
+
+  // get the user
+  const user = await User.findByIdAndUpdate(req.user._id);
+
+  console.log(`User is ${user}`);
+
+  // update the value in the database
+  user.first_name = first_name;
+  user.save();
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  changeCurrentPassword,
+  getCurrentUser,
+  updateUserData,
+};
