@@ -16,6 +16,6 @@ databaseConnection()
     )
     .catch((error) => {
         console.log(
-            `Error while listening on ${process.env.PORT} due to ${error.message}`
+            `Error while listening on ${process.env.PORT} due to ${error}`
         );
     });

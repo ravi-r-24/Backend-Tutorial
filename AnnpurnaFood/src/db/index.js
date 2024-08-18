@@ -9,9 +9,7 @@ const databaseConnection = async () => {
         console.log(`Connected to ${process.env.DATABASE_NAME} successfully`);
         console.log(`Host is: ${connectionInstance.connection.host}`);
     } catch (error) {
-        console.log(
-            `Failed to connect to ${connectionInstance.connection.host} due to:${error.message}`
-        );
+        console.log(`Failed to connect to database due to:${error.message}`);
     }
 };
 

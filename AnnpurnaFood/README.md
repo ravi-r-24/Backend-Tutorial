@@ -9,3 +9,5 @@
 # configure dotenv
 
 # npm i mongoose
+
+# npm i mongodb
