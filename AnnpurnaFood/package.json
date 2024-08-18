@@ -1,6 +1,33 @@
 {
   "dependencies": {
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "nodemon": "^3.1.4",
     "prettier": "^3.3.3"
-  }
+  },
+  "name": "annpurnafood",
+  "description": "",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon src/index.js",
+    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
+    "format": "prettier --write 'src/**/*.js'",
+    "lint": "eslint src/**/*.js",
+    "fix": "eslint src/**/*.js --fix",
+    "precommit": "npm run format && npm run lint",
+    "prepush": "npm test",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ravi-r-24/backend-tutorial.git"
+  },
+  "author": "Ravi raushan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ravi-r-24/backend-tutorial/issues"
+  },
+  "homepage": "https://github.com/ravi-r-24/backend-tutorial#readme"
 }
