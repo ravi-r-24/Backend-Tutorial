@@ -7,3 +7,5 @@
 # added dev script: "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
 
 # configure dotenv
+
+# npm i mongoose
