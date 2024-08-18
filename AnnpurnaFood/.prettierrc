@@ -1,0 +1,14 @@
+{
+  "singleQuote": false,
+  "endOfLine": "lf",
+  "tabWidth": 4,
+  "trailingComma": "es5",
+  "max_line_length": 80,
+  "bracketSameLine": true,
+  "bracketSpacing": true,
+  "arrowParens": "always",
+  "rangeStart": 0,
+  "rangeEnd": null,
+  "parser": "babel",
+  "singleAttributePerLine": true
+}
