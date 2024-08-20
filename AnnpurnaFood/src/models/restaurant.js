@@ -26,6 +26,7 @@ const restaurantSchema = new Schema(
         rating: { type: Schema.Types.ObjectId, ref: "Rating" },
         review: { type: Schema.Types.ObjectId, ref: "Review" },
         category: { type: Schema.Types.ObjectId, ref: "Category" },
+        location: { type: Schema.Types.ObjectId, ref: "Location" },
         thumbnail: [{ type: String }],
         isPromoted: { type: Boolean, default: false },
         gallery: [{ type: String }],
