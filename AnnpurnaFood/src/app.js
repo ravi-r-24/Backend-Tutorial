@@ -1,5 +1,6 @@
 import express from "express";
 import restaurantRouter from "./routes/restaurant.js";
+import userRouter from "./routes/user.js";
 
 const app = express();
 
@@ -12,5 +13,8 @@ app.use(
 
 // Restaurant Routes
 app.use("/api/v1/restaurant", restaurantRouter);
+
+// User Routes
+app.use("/api/v1/user", userRouter);
 
 export { app };

@@ -98,6 +98,8 @@ const registerUser = asyncHandler(async (req, res) => {
     "-password -refresh-token"
   );
 
+  console.log(`New user: ${newUser}`);
+
   if (!newUser) {
     throw new APIError(500, "Failed to register user");
   }
